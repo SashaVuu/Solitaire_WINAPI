@@ -142,23 +142,25 @@
     <ClCompile Include="Card.cpp" />
     <ClCompile Include="CardColumn.cpp" />
     <ClCompile Include="CardDeck.cpp" />
-    <ClCompile Include="GameField.cpp" />
     <ClCompile Include="Generator.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="SolitaireGame.cpp" />
     <ClCompile Include="SuitCell.cpp" />
-    <ClCompile Include="SuitField.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Card.h" />
     <ClInclude Include="CardColumn.h" />
     <ClInclude Include="CardDeck.h" />
-    <ClInclude Include="CardGenerator.h" />
-    <ClInclude Include="GameField.h" />
     <ClInclude Include="Generator.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="SolitaireGame.h" />
     <ClInclude Include="SuitCell.h" />
-    <ClInclude Include="SuitField.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="SolitaireWinAPI.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Cards\solitaire.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

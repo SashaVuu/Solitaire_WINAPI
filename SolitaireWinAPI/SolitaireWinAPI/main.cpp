@@ -3,23 +3,23 @@
 #include <string>
 #include "SolitaireGame.h"
 #include "Generator.h"
+#include "resource.h"
 
 
 #define WIN_HEIGHT 610
 #define WIN_WIDTH 900
 
+#define WM_NEWGAME_BUTTON 10001
+
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 void DrawBitmap(HWND hWnd);
 
-HBRUSH brush = CreateSolidBrush(RGB(80, 150, 100)); // Зеленая кисть для фона
+const CHAR* const BMP_BG_PATH = "Cards/bg_true.bmp";
 
-
-const CHAR* const BMP_PATH = "Cards/test.bmp";
-const CHAR* const BMP_BG_PATH = "Cards/bg.bmp";
-
-HBITMAP h1Bitmap;
 HBITMAP BG_Bitmap;
-bool isLeftButtonDown = false;
+HWND NewGameButton;
+
+
 
 int WINAPI  WinMain(
     HINSTANCE hInstance,
@@ -38,7 +38,7 @@ int WINAPI  WinMain(
     wcex.cbClsExtra = 0;
     wcex.cbWndExtra = 0;
     wcex.hInstance = hInstance;
-    wcex.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+    wcex.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE( IDI_ICON1 ) );
     wcex.hCursor = LoadCursor(NULL, IDC_ARROW);
     wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW);
     wcex.lpszMenuName = NULL;
@@ -50,7 +50,7 @@ int WINAPI  WinMain(
 
     hWnd = CreateWindow(
         L"SomeWindowClass",
-        L"Some Window",
+        L"Solitaire",
         WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU,
         CW_USEDEFAULT,
         CW_USEDEFAULT,
@@ -61,11 +61,21 @@ int WINAPI  WinMain(
         hInstance,
         NULL);
 
-    AllocConsole();
-    freopen("CONIN$", "r", stdin);
-    freopen("CONOUT$", "w", stdout);
-    freopen("CONOUT$", "w", stderr);
 
+    //Кнопка ОК- которая изменяет запись после заполнения всех полей
+    NewGameButton = CreateWindow(
+        L"BUTTON",
+        L"Новая игра",
+        WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
+        103,
+        WIN_HEIGHT-100,
+        100,
+        40,
+        hWnd,
+        (HMENU)(WM_NEWGAME_BUTTON),
+        (HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE),
+        NULL
+    );
 
     ShowWindow(hWnd, nCmdShow);
     UpdateWindow(hWnd);
@@ -80,8 +90,9 @@ int WINAPI  WinMain(
 }
 
 SolitaireGame* game;
-Card* card1;
-Card* card2;
+POINT* point1 = NULL;
+POINT* point2 = NULL;
+
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message,WPARAM wParam, LPARAM lParam) 
 {
@@ -89,17 +100,17 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message,WPARAM wParam, LPARAM lParam)
     switch (message) 
     {
     case WM_CREATE:
-        h1Bitmap = (HBITMAP)LoadImageA(NULL, (LPCSTR)BMP_PATH, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
         BG_Bitmap = (HBITMAP)LoadImageA(NULL, (LPCSTR)BMP_BG_PATH, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
         game = new SolitaireGame();
         break;
     case WM_PAINT: {
         PAINTSTRUCT ps;
         BeginPaint(hWnd, &ps);
-        //FillRect(ps.hdc, &ps.rcPaint, brush);
 
         DrawBitmap(hWnd);
-        game->DrawGameState(hWnd); 
+        if (game!=NULL) {
+            game->DrawGameState(hWnd);
+        }
 
         EndPaint(hWnd, &ps);
         break;
@@ -110,26 +121,74 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message,WPARAM wParam, LPARAM lParam)
 
         int x = LOWORD(lParam);
         int y = HIWORD(lParam);
-        cout << "x " << x << "y " << y << endl;
 
-        card1 = game->CheckCollisions(x, y);
-        if (card1==NULL) 
+
+        if (point1 != NULL && point2 == NULL)
         {
-            MessageBox(NULL,L"no", L"Both NULL " ,MB_OK);
-            game->fromCard = NULL;
-            game->toCard = NULL;        
+            point2 = new POINT();
+            point2->x = x;
+            point2->y = y;
         }
-        else 
+
+        if (point1 == NULL)
         {
-            if (game->fromCard == NULL) { game->fromCard = card1; MessageBox(NULL, L"yes", L"first card init", MB_OK); }
-            else if (game->fromCard != NULL) {
-                game->toCard == card1;
-                MessageBox(NULL, L"yes", L"both card init", MB_OK);
-                //действия и потом занулить обе карты
-                game->fromCard = NULL;
-                game->toCard = NULL;
+            point1 = new POINT();
+            point1->x = x;
+            point1->y = y;
+
+        }
+
+
+        if (game->DeckClick(*point1)) {
+            point1 = NULL;
+            point2 = NULL;
+        }
+
+        if (point1 != NULL && point2 != NULL) {
+            game->ChangeCards(*point1,*point2);
+            point1 = NULL;
+            point2 = NULL;
+        }
+
+        game->DrawGameState(hWnd);
+
+        if (game->isGameOver()) {
+            MessageBoxA(
+                NULL,
+                "Поздравляем игра закончена. Можете начать новую нажав на кнопку новая игра.",
+                "Game Over",
+                MB_OK | MB_ICONINFORMATION
+            );
+        }
+
+        InvalidateRect(hWnd, 0, TRUE);
+        UpdateWindow(hWnd);
+
+        break;
+    }
+
+
+    case WM_COMMAND:
+    {
+
+        int wmId = LOWORD(wParam);
+
+        // Разобрать выбор в меню:
+        switch (wmId)
+        {
+            case WM_NEWGAME_BUTTON:
+            {
+                delete game;
+                game = NULL;
+
+                game = new SolitaireGame();
+                game->DrawGameState(hWnd);
+
+                InvalidateRect(hWnd, 0, TRUE);
+                UpdateWindow(hWnd);
+
+                break;
             }
-            
         }
         break;
     }

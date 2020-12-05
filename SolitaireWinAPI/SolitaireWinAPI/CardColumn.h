@@ -2,20 +2,32 @@
 #include <windows.h>
 #include <vector>
 #include "Card.h"
+#include "Generator.h"
 
 using namespace std;
 
 class CardColumn
 {
 public:
-	vector<Card*> cardsInColumn;
-	int columnSize;					//Кол-во карт при инициализации присваиваем в конструкторе, дальше может меняться
+
 	int x;							//Координата x колонны на окне
 	static const int y = 175;		//Координата y колонны на окне static ибо на одном уровне все по y
 	static const int offsetY=20;	//расстояние между картами в колонее
+	vector<Card*> cardsInColumn;
 	
+	CardColumn(int nCards,int x, Generator* generator);
 	
-	CardColumn(int nCards,int x);
 	void DrawCardColumn(HWND hWnd);
-	Card* CheckCollisions(int X, int Y, Card* card);
+
+	bool PushCard(Card* card);
+	Card* PopCard();
+	Card* TopCard();
+
+	bool PushCardVector(vector<Card*> card);
+	bool PopCardVector(Card* startingCard);
+
+	vector<Card*> DefineCardVector(POINT point);
+
+private:
+	int columnSize;					//Кол-во карт при инициализации присваиваем в конструкторе, дальше может меняться
 };

@@ -18,18 +18,17 @@ class Generator
 {
 
 public:
+
 	Generator();
 	void GetSuitAndNum(int &suit,int &num);
 	vector<Pair*> PairVector;
 
 private:
-	//vector<Pair*> PairVector;
+
 	bool Generate();
-	void ShowArray(); //для отладки
 	void InitVectorOfPair();
+
 };
 
-
-static Generator* gen = new Generator();
 
 

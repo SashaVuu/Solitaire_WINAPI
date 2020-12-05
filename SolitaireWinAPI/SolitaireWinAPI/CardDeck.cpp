@@ -1,39 +1,97 @@
 #include "CardDeck.h"
 #include "Generator.h"
 
-CardDeck::CardDeck() 
+CardDeck::CardDeck(Generator* generator)
 {
 	int suit;
 	int num;
+
+	// Ğàíäîì êîëîäû
 	for (int i=1; i<= 52-28 ;i++) 
 	{
-		gen->GetSuitAndNum(suit,num);
+		generator->GetSuitAndNum(suit,num);
 		cards.push_back(new Card(suit, num, false, x , y));
 	}
-
-	gen->GetSuitAndNum(suit, num);
-	cards.push_back(new Card(suit, num, true, x + Card::widht + offsetX, y));
 
 }
 
 
 void CardDeck::DrawCardDeck(HWND hWnd) 
 {
-	cards.back()->DrawCard(hWnd);
-	cards.front()->DrawCard(hWnd);
+
+	if (cards.size() != 0) {
+		cards.front()->DrawCard(hWnd);
+	}
+
+	if (viewedÑards.size() != 0) {
+		viewedÑards.back()->DrawCard(hWnd);
+	}
+
 }
 
-
-Card* CardDeck::CheckCollisions(int X, int Y, Card* card)
+void CardDeck::Swap(vector<Card*>* p1, vector<Card*>* p2)
 {
-	if (card == NULL) {
-		if (!cards.empty())
+	vector<Card*> tmp = *p1;
+	*p1 = *p2;
+	*p2 = tmp;
+}
+
+void CardDeck::Next()
+{
+	int newX = x + Card::widht + offsetX;
+
+
+	if (cards.size() == 0 && viewedÑards.size()!=0) 
+	{
+		viewedÑards.back()->isActive = false;
+		viewedÑards.back()->x = x;
+
+		Swap(&cards,&viewedÑards);
+	}
+	else
+	{
+		//Îòêğûòóş êàğòó äåëàåì çàêğûòîé 
+		if (viewedÑards.size() != 0)
 		{
-			if ((this->x <= X) && (this->x + cards[0]->widht>=X) && (this->y <= Y) && (this->y + cards[0]->height >= Y))
-			{
-				card = cards.back();
-			}
+			viewedÑards.back()->x = x;
+			viewedÑards.back()->isActive = false;
+		}
+
+		if (cards.size() != 0)
+		{
+			//Ïåğåíîñèì äğóãóş êàğòó, äåëàÿ åå îòêğûòîé
+			cards.front()->isActive = true;
+			cards.front()->x = newX;
+
+			viewedÑards.push_back(cards.front());
+
+			cards.erase(cards.begin() + 0);
+
 		}
 	}
+}
+
+Card* CardDeck::TopCard() 
+{
+	return viewedÑards.back();
+}
+
+Card* CardDeck::PopCard()
+{
+	Card* card = NULL;
+	if (viewedÑards.size() != 0)
+	{
+		card = viewedÑards.back();
+
+		viewedÑards.pop_back();
+
+		if (viewedÑards.size() != 0) {
+
+			viewedÑards.back()->x = x + Card::widht + offsetX;
+			viewedÑards.back()->isActive = true;
+		}
+	}
+
 	return card;
+
 }

@@ -8,9 +8,7 @@ using namespace std;
 Generator::Generator()
 {
 	InitVectorOfPair();
-	ShowArray();
 	Generate();
-	ShowArray();
 }
 
 Pair::Pair(int Suit,int Num)
@@ -26,6 +24,7 @@ void Generator::GetSuitAndNum(int& suit, int& num)
 	suit = pair->suit;
 	num = pair->num;
 	PairVector.pop_back();
+
 	cout<<PairVector.size()<<endl;
 }
 
@@ -54,16 +53,6 @@ bool Generator::Generate()
 	return true;
 }
 
-
-
-void Generator::ShowArray()
-{
-	for (int i=0;i< 52;i++)
-	{
-		cout << "(" << PairVector[i]->suit << "," << PairVector[i]->num << ")  ";
-	}
-	cout << endl;
-}
 
 
 void Generator::InitVectorOfPair()
