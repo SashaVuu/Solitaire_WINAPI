@@ -17,10 +17,10 @@ public:
 
 	SuitCell(int Suit, int X, int Y);
 
-	void DrawSuitCell(HWND hWnd);
-
 	bool PushCard(Card* card);
 	Card* PopCard();
 	Card* TopCard();
 	bool IsFilled();
+
+
 };

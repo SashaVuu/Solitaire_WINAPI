@@ -27,15 +27,6 @@ CardColumn::CardColumn(int nCards,int x, Generator* generator)
 	
 }
 
-void CardColumn::DrawCardColumn(HWND hWnd) 
-{
-	for (int i=0;i<cardsInColumn.size();i++)
-	{
-		cardsInColumn[i]->DrawCard(hWnd);
-	}
-
-}
-
 
 bool CardColumn::PushCard(Card* card)
 {

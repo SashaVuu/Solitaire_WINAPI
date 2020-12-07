@@ -9,15 +9,6 @@ SuitCell::SuitCell(int Suit, int X, int Y)
 	suit = Suit;
 }
 
-//Отрисовываем последнюю карту вектора
-void SuitCell::DrawSuitCell(HWND hWnd)
-{
-	if (cards.size()!=0) {
-		cards.back()->DrawCard(hWnd);
-	}
-
-}
-
 bool SuitCell::PushCard(Card* card)
 {
 	bool isPushed = false;

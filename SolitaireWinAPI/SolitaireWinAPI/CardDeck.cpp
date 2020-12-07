@@ -16,18 +16,26 @@ CardDeck::CardDeck(Generator* generator)
 }
 
 
-void CardDeck::DrawCardDeck(HWND hWnd) 
+//ƒÎˇ ÓÚËÒÓ‚ÍË
+Card* CardDeck::GetOpenCard()
 {
-
+	Card* result=NULL;
 	if (cards.size() != 0) {
-		cards.front()->DrawCard(hWnd);
+		result = cards.front();
 	}
-
-	if (viewed—ards.size() != 0) {
-		viewed—ards.back()->DrawCard(hWnd);
-	}
-
+	return result;
 }
+
+Card* CardDeck::GetClosedCard()
+{
+	Card* result = NULL;
+	if (viewed—ards.size() != 0) {
+		result=viewed—ards.back();
+	}
+	return result;
+	
+}
+
 
 void CardDeck::Swap(vector<Card*>* p1, vector<Card*>* p2)
 {

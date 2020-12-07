@@ -28,15 +28,7 @@ public:
 	static HBITMAP hbitmapActiveCard; //Битмап куда грузим изображение карты
 	static HBITMAP hbitmapNotActiveCard; //Битмап куда грузим изображение перевернутой карты
 
-
 	Card(int suit, int num, bool _isActive,int x,int y);
-	void DrawCard(HWND hWnd);
-	Card* CheckCollision(int X, int Y, Card* card);
 
-
-private:
-
-	void DrawActiveCard(HWND hWnd);
-	void DrawNotActiveCard(HWND hWnd);
 
 };

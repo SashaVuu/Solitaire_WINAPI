@@ -1,10 +1,23 @@
 #pragma once
+#pragma comment(lib, "gdiplus.lib")
+
 #include <vector>
+#include <windows.h>
+#include "gdiplus.h"
 #include "CardDeck.h"
 #include "SuitCell.h"
 #include "CardColumn.h"
 #include "Generator.h"
 
+
+
+#define BACKGROUND_PIC_PATH L"Cards\\bg_true.bmp"
+#define ACTIVECARD_PIC_PATH L"Cards\\test.bmp"
+#define NOTACTIVECARD_PIC_PATH L"Cards\\non.bmp"
+
+
+#define WIN_HEIGHT 610
+#define WIN_WIDTH 900
 
 using namespace std;
 
@@ -15,7 +28,7 @@ public:
 	
 	Generator* generator;					// Генератор для карт
 
-	SolitaireGame();
+	SolitaireGame(HWND hwnd);
 
 	void DrawGameState(HWND hWnd);			// Отрисовка состояния игры
 
@@ -27,6 +40,7 @@ public:
 	bool isGameOver();
 
 
+
 private:
 
 	//Стопки карт - 4
@@ -35,16 +49,12 @@ private:
 
 	std::vector<SuitCell*> suitCells;   // Верхнее поле с 4 стопками карт,каждая стопка содержит 1 масть
 	
-	void DrawSuitCells(HWND hWnd); 
-
 
 	//Колонны карт - 7
 	const static int offsetX = 30;      //Отступ между колоннами
 	const int COLUMN_AMOUNT = 7;		//Количество игровых колонн
 
 	std::vector<CardColumn*> columns;	// Нижнее поле с 7 столбцами карт
-	
-	void DrawColumns(HWND hwnd);
 
 
 	CardDeck* cardDeck;					// Колода, которая распологается в верхнем левом углу
@@ -71,5 +81,27 @@ private:
 	bool FromCardColumnToSuitCell(CardColumn* column, SuitCell* cell);
 
 	bool FromCardColumnToCardColumn(CardColumn* column1, CardColumn* column2, POINT pointFrom);
+
+
+
+	//Для отрисовки
+	HWND hWnd;
+	HDC hdc, memDC;
+	PAINTSTRUCT ps;
+	HBITMAP oldBmp, hBM;
+
+	Gdiplus::Graphics* graphics;
+
+	Gdiplus::Image* activeCardImage;
+	Gdiplus::Image* notActiveCardImage;
+	Gdiplus::Image* backgroundImage;
+
+
+	float clientWidth, clientHeight;
+	float scale;
+
+	void InitPaint();
+	void ReleaseGraphicsResources();
+	void DrawCard(Card* card);
 
 };

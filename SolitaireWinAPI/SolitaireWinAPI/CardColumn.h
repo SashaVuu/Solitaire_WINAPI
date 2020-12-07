@@ -16,8 +16,6 @@ public:
 	vector<Card*> cardsInColumn;
 	
 	CardColumn(int nCards,int x, Generator* generator);
-	
-	void DrawCardColumn(HWND hWnd);
 
 	bool PushCard(Card* card);
 	Card* PopCard();

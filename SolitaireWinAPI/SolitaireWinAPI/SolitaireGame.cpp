@@ -1,8 +1,14 @@
 #include "SolitaireGame.h"
 
 
-	SolitaireGame::SolitaireGame()
+	SolitaireGame::SolitaireGame(const HWND hwnd)
 	{
+		hWnd = hwnd;
+
+		activeCardImage = new Gdiplus::Image(ACTIVECARD_PIC_PATH);
+		notActiveCardImage = new Gdiplus::Image(NOTACTIVECARD_PIC_PATH);
+		backgroundImage = new Gdiplus::Image(BACKGROUND_PIC_PATH);
+
 
 		generator = new Generator();
 
@@ -297,23 +303,96 @@
 	// Отрисовка состояния игры
 	void  SolitaireGame::DrawGameState(HWND hWnd) 
 	{
-		DrawColumns(hWnd);
-		DrawSuitCells(hWnd);
-		cardDeck->DrawCardDeck(hWnd);
+		InitPaint();
+
+		graphics->DrawImage(backgroundImage, 0, 0, WIN_WIDTH, WIN_HEIGHT);
+
+		Card* card;
+		for (int i = 0;i < CELL_AMOUNT;i++) {
+			for (int j = 0;j < suitCells[i]->cards.size();j++) {
+				card = suitCells[i]->cards[j];
+				DrawCard(card);
+			}
+		}
+
+		for (int i = 0;i < COLUMN_AMOUNT;i++) {
+			for (int j = 0;j < columns[i]->cardsInColumn.size();j++) {
+				card = columns[i]->cardsInColumn[j];
+				DrawCard(card);
+			}
+		}
+
+
+		card = cardDeck->GetOpenCard();
+		if (card != NULL) {
+			DrawCard(card);
+		}
+
+		card = cardDeck->GetClosedCard();
+		if (card != NULL) {
+			DrawCard(card);
+		}
+
+		ReleaseGraphicsResources();
 	}
 	
-	
-	void SolitaireGame::DrawSuitCells(HWND hWnd)
+
+	void  SolitaireGame::DrawCard(Card* card)
 	{
-		for (int i = 0;i < 4;i++) {
-			suitCells[i]->DrawSuitCell(hWnd);
+		if (card->isActive) {
+
+			int srcX = Card::widht * (card->card_num - 1);
+			int srcY = Card::height * (card->card_suit - 1);
+
+			Gdiplus::RectF destRect(card->x, card->y, Card::widht, Card::height);
+
+			graphics->DrawImage(activeCardImage,
+				destRect,
+				srcX, srcY, Card::widht, Card::height,
+				Gdiplus::Unit::UnitPixel,
+				NULL,
+				NULL,
+				NULL);
+
+		}
+		else {
+
+			int srcX = 0;
+			int srcY = 0;
+
+			Gdiplus::RectF destRect(card->x, card->y, Card::widht, Card::height);
+
+			graphics->DrawImage(notActiveCardImage,
+				destRect,
+				srcX, srcY, Card::widht, Card::height,
+				Gdiplus::Unit::UnitPixel,
+				NULL,
+				NULL,
+				NULL);
+
 		}
 	}
 
-	void  SolitaireGame::DrawColumns(HWND hwnd)
-	{
-		for (int i = 0; i < COLUMN_AMOUNT;i++)
-		{
-			columns[i]->DrawCardColumn(hwnd);
-		}
+
+	void SolitaireGame::InitPaint() {
+
+		hdc = BeginPaint(hWnd, &ps);
+
+		memDC = CreateCompatibleDC(hdc);
+		hBM = CreateCompatibleBitmap(hdc, WIN_WIDTH, WIN_HEIGHT);
+		oldBmp = (HBITMAP)SelectObject(memDC, hBM);
+		graphics = new Gdiplus::Graphics(memDC);
+		BitBlt(memDC, 0, 0, WIN_WIDTH, WIN_HEIGHT, hdc, 0, 0, SRCCOPY);
+
+	}
+
+	void SolitaireGame::ReleaseGraphicsResources() {
+
+		BitBlt(hdc, 0, 0, WIN_WIDTH, WIN_HEIGHT, memDC, 0, 0, SRCCOPY);
+		ValidateRect(hWnd, &ps.rcPaint);
+		DeleteObject(SelectObject(memDC, oldBmp));
+		DeleteObject(hBM);
+		DeleteDC(memDC);
+		EndPaint(hWnd, &ps);
+		delete graphics;
 	}

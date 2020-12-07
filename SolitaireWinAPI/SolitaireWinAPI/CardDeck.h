@@ -16,7 +16,9 @@ public:
 
 	CardDeck(Generator* generator);
 
-	void DrawCardDeck(HWND hWnd);
+	Card* GetOpenCard();
+
+	Card* GetClosedCard();
 
 	void Next();
 

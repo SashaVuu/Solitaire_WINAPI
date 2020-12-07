@@ -1,4 +1,4 @@
-#include <iostream>
+п»ї#include <iostream>
 #include <windows.h>
 #include <string>
 #include "SolitaireGame.h"
@@ -9,16 +9,13 @@
 #define WIN_HEIGHT 610
 #define WIN_WIDTH 900
 
-#define WM_NEWGAME_BUTTON 10001
+#define ID_BUTTON_NEWGAME 2001
+#define ID_BUTTON_EXIT 2002
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
-void DrawBitmap(HWND hWnd);
 
 const CHAR* const BMP_BG_PATH = "Cards/bg_true.bmp";
-
-HBITMAP BG_Bitmap;
-HWND NewGameButton;
-
+void CreateProgramMenu(HWND hwnd);
 
 
 int WINAPI  WinMain(
@@ -31,6 +28,12 @@ int WINAPI  WinMain(
     WNDCLASSEX wcex;
     HWND hWnd;
     MSG msg;
+
+
+    Gdiplus::GdiplusStartupInput gdiplusStartupInput;
+    ULONG_PTR gdiplusToken;
+    GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, nullptr);
+
 
     wcex.cbSize = sizeof(WNDCLASSEX);
     wcex.style = CS_HREDRAW | CS_VREDRAW;
@@ -62,21 +65,6 @@ int WINAPI  WinMain(
         NULL);
 
 
-    //Кнопка ОК- которая изменяет запись после заполнения всех полей
-    NewGameButton = CreateWindow(
-        L"BUTTON",
-        L"Новая игра",
-        WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
-        103,
-        WIN_HEIGHT-100,
-        100,
-        40,
-        hWnd,
-        (HMENU)(WM_NEWGAME_BUTTON),
-        (HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE),
-        NULL
-    );
-
     ShowWindow(hWnd, nCmdShow);
     UpdateWindow(hWnd);
 
@@ -86,6 +74,7 @@ int WINAPI  WinMain(
         DispatchMessage(&msg);
     }
 
+    Gdiplus::GdiplusShutdown(gdiplusToken);
     return (int)msg.wParam;
 }
 
@@ -99,20 +88,23 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message,WPARAM wParam, LPARAM lParam)
     HDC hdc;
     switch (message) 
     {
-    case WM_CREATE:
-        BG_Bitmap = (HBITMAP)LoadImageA(NULL, (LPCSTR)BMP_BG_PATH, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-        game = new SolitaireGame();
-        break;
-    case WM_PAINT: {
-        PAINTSTRUCT ps;
-        BeginPaint(hWnd, &ps);
+    case WM_CREATE: {
 
-        DrawBitmap(hWnd);
+        CreateProgramMenu(hWnd);
+        game = new SolitaireGame(hWnd);
+        break;
+    }
+    case WM_ERASEBKGND:
+    {
+        return (LRESULT)1; // Say we handled it.
+    }
+    case WM_PAINT: {
+
+
         if (game!=NULL) {
             game->DrawGameState(hWnd);
         }
 
-        EndPaint(hWnd, &ps);
         break;
     }
     case WM_LBUTTONDOWN: {
@@ -155,7 +147,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message,WPARAM wParam, LPARAM lParam)
         if (game->isGameOver()) {
             MessageBoxA(
                 NULL,
-                "Поздравляем игра закончена. Можете начать новую нажав на кнопку новая игра.",
+                "РџРѕР·РґСЂР°РІР»СЏРµРј РёРіСЂР° Р·Р°РєРѕРЅС‡РµРЅР°. РњРѕР¶РµС‚Рµ РЅР°С‡Р°С‚СЊ РЅРѕРІСѓСЋ РЅР°Р¶Р°РІ РЅР° РєРЅРѕРїРєСѓ РЅРѕРІР°СЏ РёРіСЂР°.",
                 "Game Over",
                 MB_OK | MB_ICONINFORMATION
             );
@@ -173,15 +165,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message,WPARAM wParam, LPARAM lParam)
 
         int wmId = LOWORD(wParam);
 
-        // Разобрать выбор в меню:
+        // Р Р°Р·РѕР±СЂР°С‚СЊ РІС‹Р±РѕСЂ РІ РјРµРЅСЋ:
         switch (wmId)
         {
-            case WM_NEWGAME_BUTTON:
+            case ID_BUTTON_NEWGAME:
             {
                 delete game;
                 game = NULL;
 
-                game = new SolitaireGame();
+                game = new SolitaireGame(hWnd);
                 game->DrawGameState(hWnd);
 
                 InvalidateRect(hWnd, 0, TRUE);
@@ -189,11 +181,18 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message,WPARAM wParam, LPARAM lParam)
 
                 break;
             }
+            case ID_BUTTON_EXIT:
+            {
+                PostQuitMessage(0);
+                break;
+            }
         }
         break;
     }
-    case WM_DESTROY:
+    case WM_DESTROY: {
         PostQuitMessage(0);
+
+    }
     default:
         return DefWindowProc(hWnd, message, wParam, lParam);
     }
@@ -201,32 +200,19 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message,WPARAM wParam, LPARAM lParam)
 }
 
 
-void DrawBitmap(HWND hWnd)
+
+void CreateProgramMenu(HWND hwnd)
 {
+    HMENU mainMenu = CreateMenu();
+    HMENU figuresPopupMenu = CreatePopupMenu();
 
-    HBITMAP hbitmap = BG_Bitmap;
+    AppendMenu(mainMenu, MF_STRING | MF_POPUP, (UINT)figuresPopupMenu, L"Menu");
+    {
+        AppendMenu(figuresPopupMenu, MF_STRING, ID_BUTTON_NEWGAME, L"New Game");
+        AppendMenu(figuresPopupMenu, MF_SEPARATOR, NULL, NULL);
+        AppendMenu(figuresPopupMenu, MF_STRING, ID_BUTTON_EXIT, L"Exit");
+        AppendMenu(figuresPopupMenu, MF_SEPARATOR, NULL, NULL);
+    }
 
-    BITMAP bitmap;
-
-    GetObject(hbitmap, sizeof(bitmap), &bitmap);
-
-    HDC winDC = GetDC(hWnd);
-    HDC memDC = CreateCompatibleDC(winDC);
-    HBITMAP oldBmp = (HBITMAP)SelectObject(memDC, hbitmap);
-    RECT clientRect;
-
-    GetClientRect(hWnd, &clientRect);
-
-    int clientWidth = clientRect.right - clientRect.left;
-    int clientHeight = clientRect.bottom - clientRect.top;
-
-    StretchBlt(winDC, 0, 0,
-        WIN_WIDTH, WIN_HEIGHT,
-        memDC, 0, 0, bitmap.bmWidth, bitmap.bmHeight, SRCCOPY);
-
-    SelectObject(memDC, oldBmp);
-
-    DeleteDC(memDC);
-
-    ReleaseDC(hWnd, winDC);
+    SetMenu(hwnd, mainMenu);
 }
